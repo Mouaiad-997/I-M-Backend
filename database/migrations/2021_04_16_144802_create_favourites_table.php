@@ -16,12 +16,8 @@ class CreateFavouritesTable extends Migration
         Schema::create('favourites', function (Blueprint $table) {
             $table->id();
             $table->integer('barrier_id');
-            $table->string('name');
-            $table->string('category');
-            $table->string('type_of_fashion');
-            $table->string('size');
-            $table->integer('price');
-            $table->string('image');
+            $table->dateTime('favourite_date');
+            $table->integer('category_id');
             $table->timestamps();
         });
     }

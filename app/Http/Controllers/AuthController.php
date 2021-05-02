@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admins;
 use Illuminate\Http\Request;
 use App\Models\Users;
 use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
+class AuthController extends Controller
 {
-    function login(Request $request)
+    function loging(Request $request, $typeOfUser)
     {
+        if ($typeOfUser == "User") {
+            $user = new Users();
+        } else {
+            $user = new Admins();
+        }
         $user = Users::where('name', $request->name)->first();
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response([
-                'message' => ['......']
+                'message' => ['Error']
             ], 404);
         }
 
@@ -25,27 +31,23 @@ class UserController extends Controller
             'id' => $user->id
         ];
 
-        return response($response, 201);
+        return response($response);
     }
 
 
-    public function singin(Request $req)
+    public function singing(Request $req, $typeOfUser)
     {
+        if ($typeOfUser == "user") {
+            $user = new Users();
+        } else {
+            $user = new Admins();
+        }
         $this->validate($req, [
-            'name' => 'required',
+            'name' => 'required', 'email' => 'required', 'password' => 'required'
         ]);
-        $this->validate($req, [
-            'email' => 'required',
-        ]);
-        $this->validate($req, [
-            'password' => 'required',
-        ]);
-
-        $user = new Users();
         $user->name = $req->input('name');
         $user->email = $req->input('email');
         $user->password = Hash::make($req->input('password'));
-
         $user->save();
         return $user;
     }

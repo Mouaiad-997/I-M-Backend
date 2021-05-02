@@ -7,118 +7,76 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+
+
+    public function storing(Request $req)
     {
-        //
+        $this->validate($req, [
+            'name' => 'required',
+            'category' => 'required',
+            'type_of_fashion' => 'required',
+            'size' => 'required',
+            'price' => 'required',
+            'image' => 'required',
+        ]);
+        $categories = new Categories();
+        $categories->name = $req->input('name');
+        $categories->category = $req->input('category');
+        $categories->type_of_fashion = $req->input('type_of_fashion');
+        $categories->size = $req->input('size');
+        $categories->price = $req->input('price');
+        $categories->image = $req->file('image');
+        $categories->save();
+        $categories->addMedia($req->file('image'))
+            ->toMediaCollection();
+        return "Category Added";
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function showing()
     {
-        //
+        $Category = Categories::with('media')->get();
+        return $Category;
     }
-    
-    public function store(Request $req)
-    {  
-            $this->validate($req,[
-                'name' => 'required',
-            ]);
-            $this->validate($req,[
-                'categorie' => 'required',
-            ]);
-            $this->validate($req,[
-                'type_of_fashion' => 'required',
-            ]);$this->validate($req,[
-                'size' => 'required',
-            ]);
-            $this->validate($req,[
-                'price' => 'required',
-            ]);
-             
-            // if ($req->hasfile('photo')) {
-            //     print_r("hii");
-            //     $file = $req->file('photo');
-            //     $extension = $file->getClientOriginalExtension();
-            //     $filename = time() . '.' . $extension;
-            //     // $file->move('images/', $filename);
-            //     $req->image = $filename;
-            // } else {
-                
-            //     return $req;
-            //     $req->image = '';
-            // }
-            
-            $categories = new Categories();
-            $categories->name = $req->input('name');
-            $categories->categorie = $req->input('categorie');
-            $categories->type_of_fashion = $req->input('type_of_fashion');
-            $categories->size = $req->input('size');
-            $categories->price = $req->input('price');
-            $categories->image = $req->input('image');
-        
-        $categories->save();
-    
-    
-            return "Added";
-        } 
-    
-    public function show()
-    {
-        $data = Categories::all();
-        $numOfData = count($data);
-        return ['data' => $data];
-    }
+
+
     public function numOfCategories()
     {
-        $data = Categories::all();
-        $numOfData = count($data);
+        $numOfData = Categories::count();
         return  $numOfData;
     }
 
-    public function edit($id)
+
+
+    public function updating($id, Request $req)
     {
-        //
+        $categories = Categories::find($id);
+        $categories->name = $req->input('name');
+        $categories->category = $req->input('category');
+        $categories->type_of_fashion = $req->input('type_of_fashion');
+        $categories->size = $req->input('size');
+        $categories->price = $req->input('price');
+        $categories->image = $req->file('image');
+        print_r("hii");
+        $categories->save();
+        $categories->addMedia($req->file('image'))
+            ->toMediaCollection();
+        return "Category Updated";
     }
 
-   
-    public function update($id)
+
+    public function deleting($id)
     {
         $data = Categories::find($id);
-        $data->name=request('name');
-        $data->categorie=request('categorie');
-        $data->type_of_fashion=request('type_of_fashion');
-        $data->size=request('size');
-        $data->price=request('price');
-        $data->image = request('image');
-        $data->save();
-        return "Updated";
-      
+        if ($data) {
+            $data->delete($id);
+            $data->clearMediaCollection();
+            return "Category Deleted";
+        } else return "Category Not exist";
     }
 
-   
-    public function destroy($id)
+
+    function search($name)
     {
-        $data=Categories::where('id',$id)->delete();
-        // $data=Categories::find($id);
-        // $data->delete();
-        if($data){
-            return "Deleted";
-        }
-        else return "Not exist";
-        
-    }
-
-
-    function search($name){
-        return Categories::where("name","like","%".$name."%")->get();
+        return Categories::where("name", "like", "%" . $name . "%")->take(10)->get();
     }
 }
