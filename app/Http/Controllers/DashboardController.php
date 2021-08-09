@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bookings;
 use App\Models\Categories;
+use App\Models\favourites;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
 
+    public function categoryById($id)
+    {
+        $Category = Categories::where('id', '=', $id)->with('media')->get();
+        return $Category;
+    }
 
     public function storing(Request $req)
     {
@@ -39,9 +46,15 @@ class DashboardController extends Controller
     }
 
 
-    public function numOfCategories()
+    public function numOf($type)
     {
-        $numOfData = Categories::count();
+        if ($type == "Categories") {
+            $numOfData = Categories::count();
+        } elseif ($type == "Bookings") {
+            $numOfData = Bookings::count();
+        } elseif ($type == "Favourites") {
+            $numOfData = Favourites::count();
+        }
         return  $numOfData;
     }
 
@@ -55,11 +68,16 @@ class DashboardController extends Controller
         $categories->type_of_fashion = $req->input('type_of_fashion');
         $categories->size = $req->input('size');
         $categories->price = $req->input('price');
-        $categories->image = $req->file('image');
-        print_r("hii");
         $categories->save();
-        $categories->addMedia($req->file('image'))
-            ->toMediaCollection();
+        if( $categories->image = $req->file('image')){
+        $categories->media()->delete($id); // delete previous image in the database
+        $categories->clearMediaCollection();
+        if ($categories->hasMedia('image')) {
+            $categories->updateMedia($req->file('image'), 'media'); //images === collection name
+        } else {
+            $categories->addMediaFromRequest('image')
+                ->toMediaCollection('media');
+        }}
         return "Category Updated";
     }
 
@@ -67,6 +85,12 @@ class DashboardController extends Controller
     public function deleting($id)
     {
         $data = Categories::find($id);
+        favourites::where([
+            ['category_id', '=', $id],
+        ])->delete();
+        Bookings::where([
+            ['category_id', '=', $id],
+        ])->delete();
         if ($data) {
             $data->delete($id);
             $data->clearMediaCollection();
@@ -77,6 +101,10 @@ class DashboardController extends Controller
 
     function search($name)
     {
-        return Categories::where("name", "like", "%" . $name . "%")->take(10)->get();
+        if($name==null){
+            return Categories::all();
+        }
+        else
+        return Categories::where("name", "like", "%" . $name . "%")->with('media')->take(10)->get();
     }
 }
