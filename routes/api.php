@@ -16,7 +16,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post("addBooking/{barrier_id}/{category_id}", [CategoriesController::class, 'addBooking']);
     Route::get("showBookings/{barrier_id}", [CategoriesController::class, 'showBookings']);
     Route::delete("deleteBooking/{barrier_id}/{category_id}", [CategoriesController::class, 'deleteBooking']);
-
+//////test
 });
 
 
